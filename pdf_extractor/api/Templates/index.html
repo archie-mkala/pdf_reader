@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input[type="email"],
+        input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h2 {
+            margin-top: 20px;
+            color: #333;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            width: 300px;
+        }
+
+        li {
+            background-color: #fff;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    <script>
+        function uploadPDF(event) {
+            event.preventDefault();
+            const formData = new FormData();
+            formData.append('email', document.getElementById('email').value);
+            formData.append('pdf_file', document.getElementById('pdf_file').files[0]);
+
+            fetch('/upload/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(`Error: ${data.error}`);
+                } else {
+                    alert(`Success: ${data.message}`);
+                    fetchPDFs(); // Fetch the list of uploaded PDFs after a successful upload
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while uploading the PDF.');
+            });
+        }
+
+        function fetchPDFs() {
+            fetch('/pdfs/')
+            .then(response => response.json())
+            .then(data => {
+                const pdfList = document.getElementById('pdf-list');
+                pdfList.innerHTML = ''; // Clear the list
+                data.forEach(pdf => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `Email: ${pdf.email}, Nouns: ${pdf.nouns}, Verbs: ${pdf.verbs}`;
+                    pdfList.appendChild(listItem);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while fetching the list of PDFs.');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchPDFs(); 
+        });
+    </script>
+</head>
+<body>
+    <h1>Upload PDF</h1>
+    <form onsubmit="uploadPDF(event)">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+        <label for="pdf_file">PDF File:</label>
+        <input type="file" id="pdf_file" name="pdf_file" accept="application/pdf" required><br><br>
+        <button type="submit">Upload</button>
+    </form>
+    <h2>Uploaded PDFs</h2>
+    <ul id="pdf-list"></ul>
+</body>
+</html>
